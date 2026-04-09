@@ -7,21 +7,29 @@ export default async function handler(req, res) {
     const { url } = req.body;
 
     const start = Date.now();
+
     const response = await fetch(url);
-    const data = await response.json();
+
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      data = await response.text();
+    }
 
     const time = Date.now() - start;
 
-    res.status(200).json({
+    return res.status(200).json({
       status: response.status,
       time,
       data
     });
 
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       status: "Error",
-      time: null
+      time: null,
+      error: error.message
     });
   }
 }
