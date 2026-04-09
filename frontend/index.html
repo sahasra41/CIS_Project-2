@@ -3,7 +3,6 @@
 <head>
   <title>API Sentinel</title>
 
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -86,13 +85,11 @@
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <h2>🚀 API Sentinel</h2>
   <span class="status">System Online</span>
 </div>
 
-<!-- INPUT -->
 <div class="api-box">
   <select id="method">
     <option>GET</option>
@@ -104,16 +101,13 @@
   <button onclick="testAPI()">Run Test</button>
 </div>
 
-<!-- AUTO MONITOR BUTTONS -->
 <div style="margin-top:10px;">
   <button onclick="startMonitoring()">Start Auto Monitor</button>
   <button onclick="stopMonitoring()">Stop</button>
 </div>
 
-<!-- RESULT -->
 <div id="result" style="margin-top:20px;"></div>
 
-<!-- GRAPH + HISTORY -->
 <div class="row">
 
   <div class="card">
@@ -130,7 +124,6 @@
 
 <script>
 
-// GRAPH SETUP
 const ctx = document.getElementById('myChart').getContext('2d');
 
 const chartData = {
@@ -148,7 +141,6 @@ const myChart = new Chart(ctx, {
   data: chartData
 });
 
-// AUTO MONITOR
 let monitorInterval = null;
 
 function startMonitoring() {
@@ -164,7 +156,6 @@ function stopMonitoring() {
   alert("Monitoring stopped 🛑");
 }
 
-// MAIN FUNCTION
 async function testAPI() {
   const url = document.getElementById("url").value;
   const resultDiv = document.getElementById("result");
@@ -172,7 +163,7 @@ async function testAPI() {
   resultDiv.innerHTML = "<p>Testing API...</p>";
 
   try {
-    const res = await fetch("http://51.21.244.8:3000/test-api", {
+    const res = await fetch("/api/test-api", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url })
@@ -180,24 +171,20 @@ async function testAPI() {
 
     const data = await res.json();
 
-    // STATUS COLOR
     let statusClass = "success";
     if (!data.status || data.status >= 400) {
       statusClass = "error";
     }
 
-    // RESULT
     resultDiv.innerHTML =
       `<p class="${statusClass}">
         Status: ${data.status || "Error"} |
         Time: ${data.time || "N/A"} ms
       </p>`;
 
-    // HISTORY
     const history = document.getElementById("history");
     history.innerHTML += `<p>${url} - ${data.time || "N/A"} ms</p>`;
 
-    // GRAPH (LIMIT 10 POINTS)
     if (data.time) {
       const timeNow = new Date().toLocaleTimeString();
 
