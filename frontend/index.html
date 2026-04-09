@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>API Sentinel</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: Arial;
+      margin: 0;
+      text-align: center;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      padding: 20px;
+      align-items: center;
+    }
+
+    .status {
+      background: #22c55e;
+      padding: 5px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    .api-box {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px;
+    }
+
+    select, input {
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    input {
+      width: 400px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: linear-gradient(45deg, #3b82f6, #22c55e);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 10px;
+      width: 40%;
+    }
+
+    .success {
+      color: #22c55e;
+    }
+
+    .error {
+      color: red;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 300px !important;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h2>🚀 API Sentinel</h2>
+  <span class="status">System Online</span>
+</div>
+
+<!-- INPUT -->
+<div class="api-box">
+  <select id="method">
+    <option>GET</option>
+    <option>POST</option>
+  </select>
+
+  <input id="url" placeholder="Enter API URL" />
+
+  <button onclick="testAPI()">Run Test</button>
+</div>
+
+<!-- AUTO MONITOR BUTTONS -->
+<div style="margin-top:10px;">
+  <button onclick="startMonitoring()">Start Auto Monitor</button>
+  <button onclick="stopMonitoring()">Stop</button>
+</div>
+
+<!-- RESULT -->
+<div id="result" style="margin-top:20px;"></div>
+
+<!-- GRAPH + HISTORY -->
+<div class="row">
+
+  <div class="card">
+    <h3>Latency Graph</h3>
+    <canvas id="myChart"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>Run History</h3>
+    <div id="history"></div>
+  </div>
+
+</div>
+
+<script>
+
+// GRAPH SETUP
+const ctx = document.getElementById('myChart').getContext('2d');
+
+const chartData = {
+  labels: [],
+  datasets: [{
+    label: 'Response Time (ms)',
+    data: [],
+    borderWidth: 2,
+    tension: 0.3
+  }]
+};
+
+const myChart = new Chart(ctx, {
+  type: 'line',
+  data: chartData
+});
+
+// AUTO MONITOR
+let monitorInterval = null;
+
+function startMonitoring() {
+  if (!monitorInterval) {
+    monitorInterval = setInterval(testAPI, 5000);
+    alert("Auto monitoring started 🚀");
+  }
+}
+
+function stopMonitoring() {
+  clearInterval(monitorInterval);
+  monitorInterval = null;
+  alert("Monitoring stopped 🛑");
+}
+
+// MAIN FUNCTION
+async function testAPI() {
+  const url = document.getElementById("url").value;
+  const resultDiv = document.getElementById("result");
+
+  resultDiv.innerHTML = "<p>Testing API...</p>";
+
+  try {
+    const res = await fetch("http://51.21.244.8:3000/test-api", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url })
+    });
+
+    const data = await res.json();
+
+    // STATUS COLOR
+    let statusClass = "success";
+    if (!data.status || data.status >= 400) {
+      statusClass = "error";
+    }
+
+    // RESULT
+    resultDiv.innerHTML =
+      `<p class="${statusClass}">
+        Status: ${data.status || "Error"} |
+        Time: ${data.time || "N/A"} ms
+      </p>`;
+
+    // HISTORY
+    const history = document.getElementById("history");
+    history.innerHTML += `<p>${url} - ${data.time || "N/A"} ms</p>`;
+
+    // GRAPH (LIMIT 10 POINTS)
+    if (data.time) {
+      const timeNow = new Date().toLocaleTimeString();
+
+      chartData.labels.push(timeNow);
+      chartData.datasets[0].data.push(data.time);
+
+      if (chartData.labels.length > 10) {
+        chartData.labels.shift();
+        chartData.datasets[0].data.shift();
+      }
+
+      myChart.update();
+    }
+
+  } catch (error) {
+    resultDiv.innerHTML =
+      "<p class='error'>Error connecting to server ❌</p>";
+  }
+}
+
+</script>
+
+</body>
+</html>
