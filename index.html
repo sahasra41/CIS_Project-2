@@ -172,7 +172,8 @@ async function testAPI() {
   resultDiv.innerHTML = "<p>Testing API...</p>";
 
   try {
-    const res = await fetch("http://51.21.244.8:3000/test-api", {
+    const res = await fetch("https://51.21.244.8:3000/test-api",{
+      mode: "cors",
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url })
